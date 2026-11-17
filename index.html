@@ -1,0 +1,582 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Online Course Registration System</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6fb;
+    color: #222;
+}
+
+header {
+    background: #243b80;
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+nav {
+    background: #172554;
+    padding: 15px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 25px;
+}
+
+nav button {
+    background: transparent;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 30px auto;
+}
+
+h2 {
+    color: #243b80;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+button.action {
+    background: #243b80;
+    color: white;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button.action:hover {
+    background: #4059b5;
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 20px;
+}
+
+.card {
+    background: white;
+    padding: 22px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px #0001;
+}
+
+.card h3 {
+    color: #243b80;
+    margin-bottom: 12px;
+}
+
+.card p {
+    margin: 9px 0;
+}
+
+.auth {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px #0002;
+}
+
+.auth h2 {
+    text-align: center;
+}
+
+.message {
+    margin: 12px 0;
+    color: #243b80;
+}
+
+.welcome {
+    margin-bottom: 25px;
+}
+
+footer {
+    background: #172554;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+}
+
+@media(max-width:600px) {
+    nav {
+        gap: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>Online Course Registration System</h1>
+    <p>Learn | Explore | Register</p>
+</header>
+
+<nav id="navbar">
+    <button onclick="showSection('login')">Login</button>
+    <button onclick="showSection('signup')">Register</button>
+</nav>
+
+<div class="container">
+
+<!-- SIGNUP SECTION -->
+<section id="signup" class="section">
+    <div class="auth">
+        <h2>Student Registration</h2>
+
+        <input type="text" id="regName" placeholder="Enter Full Name">
+        <input type="email" id="regEmail" placeholder="Enter Email">
+        <input type="password" id="regPassword" placeholder="Enter Password">
+
+        <button class="action" onclick="signup()">Create Account</button>
+
+        <p class="message" id="signupMsg"></p>
+        <p>Already have an account?
+            <a href="#" onclick="showSection('login')">Login</a>
+        </p>
+    </div>
+</section>
+
+<!-- LOGIN SECTION -->
+<section id="login" class="section active">
+    <div class="auth">
+        <h2>Student Login</h2>
+
+        <input type="email" id="loginEmail" placeholder="Enter Email">
+        <input type="password" id="loginPassword" placeholder="Enter Password">
+
+        <button class="action" onclick="login()">Login</button>
+
+        <p class="message" id="loginMsg"></p>
+        <p>New Student?
+            <a href="#" onclick="showSection('signup')">Create Account</a>
+        </p>
+    </div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="section">
+
+    <div class="welcome">
+        <h2>Welcome, <span id="studentName"></span>!</h2>
+        <p>Explore courses and register for your favourite subjects.</p>
+    </div>
+
+    <nav>
+        <button onclick="showSection('dashboard')">Dashboard</button>
+        <button onclick="showSection('courses')">Available Courses</button>
+        <button onclick="showSection('myCourses')">My Courses</button>
+        <button onclick="logout()">Logout</button>
+    </nav>
+
+    <br>
+
+    <div class="cards">
+        <div class="card">
+            <h3>Available Courses</h3>
+            <h2 id="totalCourses">0</h2>
+        </div>
+
+        <div class="card">
+            <h3>Registered Courses</h3>
+            <h2 id="myTotal">0</h2>
+        </div>
+    </div>
+
+</section>
+
+<!-- AVAILABLE COURSES -->
+<section id="courses" class="section">
+    <h2>Available Courses</h2>
+
+    <input type="text" id="search"
+        placeholder="Search courses by name..."
+        oninput="displayCourses()">
+
+    <div class="cards" id="courseList"></div>
+</section>
+
+<!-- MY COURSES -->
+<section id="myCourses" class="section">
+    <h2>My Registered Courses</h2>
+    <div class="cards" id="registeredList"></div>
+</section>
+
+</div>
+
+<footer>
+    <p>Online Course Registration System</p>
+    <p>© 2026 All Rights Reserved</p>
+</footer>
+
+<script>
+
+// COURSE DETAILS
+let courses = [
+    {
+        id: 101,
+        name: "Python Programming",
+        instructor: "John Smith",
+        credits: 4,
+        seats: 30
+    },
+    {
+        id: 102,
+        name: "Web Development",
+        instructor: "David Kumar",
+        credits: 3,
+        seats: 25
+    },
+    {
+        id: 103,
+        name: "Machine Learning",
+        instructor: "Priya Sharma",
+        credits: 4,
+        seats: 20
+    },
+    {
+        id: 104,
+        name: "Database Management",
+        instructor: "Robert",
+        credits: 3,
+        seats: 15
+    },
+    {
+        id: 105,
+        name: "Java Programming",
+        instructor: "Anil Kumar",
+        credits: 3,
+        seats: 20
+    }
+];
+
+let students = JSON.parse(localStorage.getItem("students")) || [];
+let currentStudent = JSON.parse(localStorage.getItem("currentStudent")) || null;
+let registrations = JSON.parse(localStorage.getItem("registrations")) || {};
+
+// SAVE DATA
+function saveData() {
+    localStorage.setItem("students", JSON.stringify(students));
+    localStorage.setItem("registrations", JSON.stringify(registrations));
+    localStorage.setItem("courses", JSON.stringify(courses));
+}
+
+// NAVIGATION
+function showSection(id) {
+
+    if (["dashboard", "courses", "myCourses"].includes(id) && !currentStudent) {
+        showSection("login");
+        return;
+    }
+
+    document.querySelectorAll(".section").forEach(section => {
+        section.classList.remove("active");
+    });
+
+    document.getElementById(id).classList.add("active");
+
+    if (id === "dashboard") updateDashboard();
+    if (id === "courses") displayCourses();
+    if (id === "myCourses") displayRegistered();
+}
+
+// STUDENT SIGNUP
+function signup() {
+
+    let name = document.getElementById("regName").value.trim();
+    let email = document.getElementById("regEmail").value.trim().toLowerCase();
+    let password = document.getElementById("regPassword").value;
+
+    if (!name || !email || !password) {
+        alert("Please fill all fields!");
+        return;
+    }
+
+    if (password.length < 6) {
+        alert("Password must contain at least 6 characters!");
+        return;
+    }
+
+    if (students.some(s => s.email === email)) {
+        alert("Email already registered!");
+        return;
+    }
+
+    students.push({name, email, password});
+    saveData();
+
+    alert("Registration Successful! Please Login.");
+
+    document.getElementById("regName").value = "";
+    document.getElementById("regEmail").value = "";
+    document.getElementById("regPassword").value = "";
+
+    showSection("login");
+}
+
+// STUDENT LOGIN
+function login() {
+
+    let email = document.getElementById("loginEmail").value.trim().toLowerCase();
+    let password = document.getElementById("loginPassword").value;
+
+    let student = students.find(s =>
+        s.email === email && s.password === password
+    );
+
+    if (!student) {
+        document.getElementById("loginMsg").innerText =
+            "Invalid email or password!";
+        return;
+    }
+
+    currentStudent = {
+        name: student.name,
+        email: student.email
+    };
+
+    localStorage.setItem("currentStudent", JSON.stringify(currentStudent));
+
+    document.getElementById("loginMsg").innerText = "";
+
+    document.getElementById("loginEmail").value = "";
+    document.getElementById("loginPassword").value = "";
+
+    document.getElementById("studentName").innerText = student.name;
+
+    showSection("dashboard");
+}
+
+// LOGOUT
+function logout() {
+
+    currentStudent = null;
+    localStorage.removeItem("currentStudent");
+
+    alert("Logged out successfully!");
+
+    showSection("login");
+}
+
+// GET REGISTERED COURSE IDS
+function getMyRegistrations() {
+    if (!currentStudent) return [];
+
+    return registrations[currentStudent.email] || [];
+}
+
+// DISPLAY COURSES
+function displayCourses() {
+
+    let list = document.getElementById("courseList");
+    let search = document.getElementById("search").value.toLowerCase();
+
+    list.innerHTML = "";
+
+    let myCourses = getMyRegistrations();
+
+    let filtered = courses.filter(c =>
+        c.name.toLowerCase().includes(search)
+    );
+
+    if (filtered.length === 0) {
+        list.innerHTML = "<p>No courses found.</p>";
+        return;
+    }
+
+    filtered.forEach(course => {
+
+        let alreadyRegistered = myCourses.includes(course.id);
+
+        list.innerHTML += `
+            <div class="card">
+                <h3>${course.name}</h3>
+                <p>Course ID: ${course.id}</p>
+                <p>Instructor: ${course.instructor}</p>
+                <p>Credits: ${course.credits}</p>
+                <p>Available Seats: ${course.seats}</p>
+
+                <button class="action"
+                    onclick="registerCourse(${course.id})"
+                    ${alreadyRegistered || course.seats <= 0 ? "disabled" : ""}>
+                    ${alreadyRegistered ? "Registered" :
+                      course.seats <= 0 ? "Course Full" : "Register"}
+                </button>
+            </div>
+        `;
+    });
+}
+
+// REGISTER COURSE
+function registerCourse(id) {
+
+    let course = courses.find(c => c.id === id);
+
+    if (!currentStudent || !course) return;
+
+    let myCourses = getMyRegistrations();
+
+    if (myCourses.includes(id)) {
+        alert("You have already registered for this course!");
+        return;
+    }
+
+    if (course.seats <= 0) {
+        alert("Sorry! No seats available.");
+        return;
+    }
+
+    if (!registrations[currentStudent.email]) {
+        registrations[currentStudent.email] = [];
+    }
+
+    registrations[currentStudent.email].push(id);
+    course.seats--;
+
+    saveData();
+
+    alert("Course Registered Successfully!");
+
+    displayCourses();
+    updateDashboard();
+}
+
+// DISPLAY REGISTERED COURSES
+function displayRegistered() {
+
+    let list = document.getElementById("registeredList");
+    let myCourses = getMyRegistrations();
+
+    list.innerHTML = "";
+
+    if (myCourses.length === 0) {
+        list.innerHTML = "<p>No courses registered yet.</p>";
+        return;
+    }
+
+    courses.filter(c => myCourses.includes(c.id)).forEach(course => {
+
+        list.innerHTML += `
+            <div class="card">
+                <h3>${course.name}</h3>
+                <p>Course ID: ${course.id}</p>
+                <p>Instructor: ${course.instructor}</p>
+                <p>Credits: ${course.credits}</p>
+
+                <button class="action"
+                    onclick="cancelCourse(${course.id})">
+                    Cancel Registration
+                </button>
+            </div>
+        `;
+    });
+}
+
+// CANCEL REGISTRATION
+function cancelCourse(id) {
+
+    let myCourses = getMyRegistrations();
+
+    registrations[currentStudent.email] =
+        myCourses.filter(courseId => courseId !== id);
+
+    let course = courses.find(c => c.id === id);
+
+    if (course) course.seats++;
+
+    saveData();
+
+    alert("Registration Cancelled!");
+
+    displayRegistered();
+    updateDashboard();
+}
+
+// UPDATE DASHBOARD
+function updateDashboard() {
+
+    document.getElementById("studentName").innerText = currentStudent.name;
+
+    document.getElementById("totalCourses").innerText = courses.length;
+
+    document.getElementById("myTotal").innerText =
+        getMyRegistrations().length;
+}
+
+// INITIALIZATION
+function initialize() {
+
+    const savedCourses = JSON.parse(localStorage.getItem("courses"));
+
+    if (savedCourses) {
+        courses = savedCourses;
+    } else {
+        saveData();
+    }
+
+    if (currentStudent) {
+        let validStudent = students.find(
+            s => s.email === currentStudent.email
+        );
+
+        if (validStudent) {
+            showSection("dashboard");
+        } else {
+            currentStudent = null;
+            localStorage.removeItem("currentStudent");
+            showSection("login");
+        }
+    } else {
+        showSection("login");
+    }
+}
+
+initialize();
+
+</script>
+
+</body>
+</html>
